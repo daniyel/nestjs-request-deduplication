@@ -2,17 +2,36 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RequestDeduplicationService } from './request-deduplication.service';
 import { REQUEST_DEDUPLICATION_MODULE_OPTIONS } from './request-deduplication.constants';
 import { MemoryStorage } from './storage/memory.storage';
+import { Logger } from '@nestjs/common';
 
-jest.mock('./storage/memory.storage');
+// Create a proper mock implementation that matches MemoryStorage structure
+const mockMemoryStorageInstance = {
+  memoryCache: new Map(),
+  logger: new Logger(),
+  initialized: false,
+  client: undefined,
+  options: {},
+  initStorage: jest.fn().mockResolvedValue(undefined),
+  get: jest.fn(),
+  set: jest.fn(),
+  delete: jest.fn()
+} as unknown as jest.Mocked<MemoryStorage>;
+
+// Mock the MemoryStorage module
+jest.mock('./storage/memory.storage', () => ({
+  MemoryStorage: jest.fn().mockImplementation(() => mockMemoryStorageInstance)
+}));
 
 describe('RequestDeduplicationService', () => {
   let service: RequestDeduplicationService;
   let mockMemoryStorage: jest.Mocked<MemoryStorage>;
+  let module: TestingModule;
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    jest.clearAllTimers();
 
-    const module: TestingModule = await Test.createTestingModule({
+    module = await Test.createTestingModule({
       providers: [
         RequestDeduplicationService,
         {
@@ -26,12 +45,14 @@ describe('RequestDeduplicationService', () => {
     }).compile();
 
     service = module.get<RequestDeduplicationService>(RequestDeduplicationService);
-    
-    // Get the mock instance after service initialization
-    mockMemoryStorage = (MemoryStorage as unknown as jest.Mock).mock.instances[0];
-
-    // Wait for module initialization
+    // Get the mock instance
+    mockMemoryStorage = mockMemoryStorageInstance;
     await service.onModuleInit();
+  });
+
+  afterEach(async () => {
+    jest.clearAllTimers();
+    await module?.close();
   });
 
   it('should be defined', () => {
@@ -39,7 +60,6 @@ describe('RequestDeduplicationService', () => {
   });
 
   it('should process new request', async () => {
-    // Setup mock return values
     mockMemoryStorage.get.mockResolvedValue(undefined);
     mockMemoryStorage.set.mockResolvedValue(undefined);
 
@@ -50,8 +70,7 @@ describe('RequestDeduplicationService', () => {
   });
 
   it('should detect duplicate request', async () => {
-    // Setup mock return values
-    mockMemoryStorage.get.mockResolvedValueOnce('existing-value');
+    mockMemoryStorage.get.mockResolvedValue('existing-value');
     
     const result = await service.processRequest('test-key', 'test-value', 1000);
     
@@ -65,5 +84,10 @@ describe('RequestDeduplicationService', () => {
     await expect(service.processRequest('test-key', 'test-value', 1000))
       .rejects
       .toThrow('Storage error');
+  });
+
+  afterAll(async () => {
+    await module?.close();
+    jest.clearAllTimers();
   });
 });

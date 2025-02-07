@@ -1,17 +1,45 @@
 import { MemoryStorage } from './memory.storage';
 import { RequestDeduplicationModuleOptions } from '../request-deduplication.interface';
+import { Logger } from '@nestjs/common';
+
+// Mock @nestjs/common before any other imports or code
+jest.mock('@nestjs/common', () => {
+  const mockLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+  };
+  
+  return {
+    ...jest.requireActual('@nestjs/common'),
+    Logger: jest.fn().mockImplementation(() => mockLogger),
+  };
+});
+
+// Get the mock logger instance after mocking
+const getMockLogger = () => (Logger as jest.MockedClass<typeof Logger>).mock.results[0]?.value;
 
 describe('MemoryStorage', () => {
   let storage: MemoryStorage;
+  let mockLogger: any;
+  
   const options: RequestDeduplicationModuleOptions = { 
     storage: 'memory',
     ttl: 1000
   };
 
   beforeEach(() => {
-    // Reset the singleton instance before each test
+    jest.clearAllMocks();
     (MemoryStorage as any).instance = undefined;
     storage = new MemoryStorage(options);
+    mockLogger = getMockLogger();
+  });
+
+  afterEach(() => {
+    storage.clearAllTimeouts();
+    jest.clearAllTimers();
   });
 
   describe('Singleton Pattern', () => {
@@ -47,34 +75,33 @@ describe('MemoryStorage', () => {
 
   describe('TTL Functionality', () => {
     beforeEach(async () => {
+      jest.useFakeTimers();
       await storage.initStorage();
     });
 
+    afterEach(() => {
+      storage.clearAllTimeouts();
+      jest.useRealTimers();
+      jest.clearAllTimers();
+    });
+
     it('should remove value after TTL expires', async () => {
-      jest.useFakeTimers();
-      
       await storage.set('test-key', 'test-value', 1000);
       expect(await storage.get('test-key')).toBe('test-value');
       
       jest.advanceTimersByTime(1100);
       
       expect(await storage.get('test-key')).toBeUndefined();
-      
-      jest.useRealTimers();
     });
   });
 
   describe('Initialization', () => {
     it('should initialize only once', async () => {
-      const logSpy = jest.spyOn(console, 'log');
-      
       await storage.initStorage();
-      await storage.initStorage(); // Second call should not re-initialize
+      await storage.initStorage(); // Second call should not log again
       
-      expect(logSpy).toHaveBeenCalledWith('In-memory storage initialized.');
-      expect(logSpy).toHaveBeenCalledTimes(1);
-      
-      logSpy.mockRestore();
+      expect(mockLogger.log).toHaveBeenCalledWith('In-memory storage initialized.');
+      expect(mockLogger.log).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -88,5 +115,11 @@ describe('MemoryStorage', () => {
       await expect(storage.get(undefined as unknown as string)).resolves.toBeUndefined();
       await expect(storage.delete(undefined as unknown as string)).resolves.toBeUndefined();
     });
+  });
+
+  afterAll(() => {
+    storage.clearAllTimeouts();
+    jest.useRealTimers();
+    jest.clearAllTimers();
   });
 });

@@ -6,6 +6,7 @@ import { RequestDeduplicationModuleOptions } from '../request-deduplication.inte
 export class MemoryStorage extends RequestDeduplicationStorage {
   private static instance: MemoryStorage;
   private memoryCache: Map<string, any> = new Map();
+  private timeouts: Map<string, NodeJS.Timeout> = new Map();
   private readonly logger = new Logger(MemoryStorage.name);
   private initialized = false;
 
@@ -30,14 +31,22 @@ export class MemoryStorage extends RequestDeduplicationStorage {
       return;
     }
 
+    // Clear existing timeout if any
+    const existingTimeout = this.timeouts.get(key);
+    if (existingTimeout) {
+      clearTimeout(existingTimeout);
+    }
+
     this.logger.log(`Storing key ${key} with value ${value}`);
     this.memoryCache.set(key, value);
 
     if (ttl) {
-      setTimeout(() => {
+      const timeout = setTimeout(() => {
         this.memoryCache.delete(key);
+        this.timeouts.delete(key);
         this.logger.log(`Key ${key} expired and deleted from memory.`);
       }, ttl);
+      this.timeouts.set(key, timeout);
     }
   }
 
@@ -54,7 +63,19 @@ export class MemoryStorage extends RequestDeduplicationStorage {
       return;
     }
 
+    const timeout = this.timeouts.get(key);
+    if (timeout) {
+      clearTimeout(timeout);
+      this.timeouts.delete(key);
+    }
+
     this.memoryCache.delete(key);
     this.logger.log(`Key ${key} deleted from memory.`);
+  }
+
+  // Add method for test cleanup
+  public clearAllTimeouts() {
+    this.timeouts.forEach(timeout => clearTimeout(timeout));
+    this.timeouts.clear();
   }
 }

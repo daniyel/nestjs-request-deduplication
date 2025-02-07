@@ -1,20 +1,21 @@
-import { Test } from '@nestjs/testing';
+import { Test, TestingModule } from '@nestjs/testing';
 import { ExecutionContext, CallHandler } from '@nestjs/common';
 import { RequestDeduplicationInterceptor } from './request-deduplication.interceptor';
 import { RequestDeduplicationService } from './request-deduplication.service';
 import { REQUEST_DEDUPLICATION_MODULE_OPTIONS } from './request-deduplication.constants';
-import { of } from 'rxjs';
+import { of, firstValueFrom } from 'rxjs';
 
 describe('RequestDeduplicationInterceptor', () => {
   let interceptor: RequestDeduplicationInterceptor;
   let requestDeduplicationService: jest.Mocked<RequestDeduplicationService>;
+  let module: TestingModule;
 
   beforeEach(async () => {
     const mockRequestDeduplicationService = {
       processRequest: jest.fn(),
     };
 
-    const module = await Test.createTestingModule({
+    module = await Test.createTestingModule({
       providers: [
         RequestDeduplicationInterceptor,
         {
@@ -32,6 +33,10 @@ describe('RequestDeduplicationInterceptor', () => {
     requestDeduplicationService = module.get(RequestDeduplicationService);
   });
 
+  afterEach(async () => {
+    await module?.close();
+  });
+
   it('should allow first request to proceed', async () => {
     const context = createMockExecutionContext({
       method: 'GET',
@@ -41,9 +46,9 @@ describe('RequestDeduplicationInterceptor', () => {
     const callHandler = createMockCallHandler({ result: 'success' });
     requestDeduplicationService.processRequest.mockResolvedValue(true);
 
-    const result = await interceptor
-      .intercept(context, callHandler)
-      .toPromise();
+    const result = await firstValueFrom(
+      interceptor.intercept(context, callHandler)
+    );
 
     expect(result).toBe('success');
     expect(requestDeduplicationService.processRequest).toHaveBeenCalledWith(
@@ -62,29 +67,40 @@ describe('RequestDeduplicationInterceptor', () => {
     const callHandler = createMockCallHandler({ result: 'success' });
     requestDeduplicationService.processRequest.mockResolvedValue(false);
 
-    const result = await interceptor
-      .intercept(context, callHandler)
-      .toPromise();
+    const result = await firstValueFrom(
+      interceptor.intercept(context, callHandler)
+    );
 
     expect(result).toEqual({ message: 'Duplicate request' });
   });
 
   it('should generate different keys for different requests', async () => {
-    const keys = new Set();
     const requests = [
       { method: 'GET', originalUrl: '/test1', body: {} },
       { method: 'GET', originalUrl: '/test2', body: {} },
       { method: 'POST', originalUrl: '/test1', body: { data: 'test' } },
     ];
 
-    requests.forEach(reqData => {
+    requestDeduplicationService.processRequest.mockResolvedValue(true);
+
+    const processPromises = requests.map(async (reqData) => {
       const context = createMockExecutionContext(reqData);
-      interceptor.intercept(context, createMockCallHandler({ result: 'success' }));
-      const key = (requestDeduplicationService.processRequest.mock.calls.pop() || [])[0];
-      keys.add(key);
+      const result$ = interceptor.intercept(context, createMockCallHandler({ result: 'success' }));
+      await firstValueFrom(result$);
     });
 
+    await Promise.all(processPromises);
+
+    const keys = new Set(
+      requestDeduplicationService.processRequest.mock.calls.map(call => call[0])
+    );
+
     expect(keys.size).toBe(requests.length);
+    expect(requestDeduplicationService.processRequest).toHaveBeenCalledTimes(requests.length);
+  });
+
+  afterAll(async () => {
+    await module?.close();
   });
 });
 
