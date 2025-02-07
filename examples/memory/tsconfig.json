@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "baseUrl": ".",
+    "paths": {
+      "nestjs-request-deduplication": ["../../../index.ts"]
+    },
+    "outDir": "../../dist/examples/memory"
+  },
+  "include": ["src/**/*", "../../../index.ts"]
+}
