@@ -9,8 +9,10 @@
       "prerelease": false,
       "include-component-in-tag": false,
       "include-v-in-tag": true,
+      "initial-version": "0.0.0",
       "versioning": "default"
     }
   },
-  "bootstrap-sha": "HEAD"
+  "bootstrap-sha": "HEAD",
+  "last-release-sha": "HEAD"
 }
