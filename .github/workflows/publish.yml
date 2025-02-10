@@ -36,25 +36,32 @@ jobs:
       - name: Run tests
         run: npm run test
 
-      - name: Generate CHANGELOG
-        id: changelog
-        uses: TriPSs/conventional-changelog-action@v6
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          preset: 'angular'
-          release-count: 0
+      - name: Install changelog tools
+        run: npm install -g conventional-changelog-cli conventional-recommended-bump
 
       - name: Determine version bump
-        id: version
-        uses: zwaldowski/semver-release-action@v3
-        with:
-          dry_run: true
-          bump: ${{ steps.changelog.outputs.bump }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+        id: bump
+        run: |
+          BUMP=$(conventional-recommended-bump -p angular)
+          echo "bump=$BUMP" >> $GITHUB_OUTPUT
+
+      - name: Generate CHANGELOG
+        id: changelog
+        run: |
+          # Generate the changelog
+          conventional-changelog -p angular -i CHANGELOG.md -s
+
+          # Capture the latest changes for PR description
+          LATEST_CHANGES=$(conventional-changelog -p angular -r 1)
+          echo "changes<<EOF" >> $GITHUB_OUTPUT
+          echo "$LATEST_CHANGES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Update version
         run: |
-          npm version ${{ steps.version.outputs.version }} --no-git-tag-version
+          NEW_VERSION=$(npm version ${{ steps.bump.outputs.bump }} --no-git-tag-version)
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
@@ -62,14 +69,14 @@ jobs:
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GH_TOKEN }}
-          commit-message: "chore(release): ${{ steps.version.outputs.version }}"
-          title: "chore(release): ${{ steps.version.outputs.version }}"
+          commit-message: "chore(release): ${{ steps.bump.outputs.version }}"
+          title: "chore(release): ${{ steps.bump.outputs.version }}"
           body: |
-            Release version ${{ steps.version.outputs.version }}
+            Release version ${{ steps.bump.outputs.version }}
 
             Changes:
             ${{ steps.changelog.outputs.changes }}
-          branch: release/${{ steps.version.outputs.version }}
+          branch: release/${{ steps.bump.outputs.version }}
           base: main
           labels: release
           draft: false
