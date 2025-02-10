@@ -53,14 +53,14 @@ describe('MemcachedAdapter', () => {
       expect(result).toEqual(mockValue);
     });
 
-    it('should return undefined when key not found', async () => {
+    it('should throw error when key not found', async () => {
       const mockGet = jest.fn().mockResolvedValue(undefined);
       (Keyv as unknown as jest.Mock).mockImplementation(() => ({ get: mockGet }));
 
       await adapter.init();
-      const result = await adapter.get('non-existent-key');
-
-      expect(result).toBeUndefined();
+      await expect(adapter.get('non-existent-key')).rejects.toThrow(
+        'Key non-existent-key not found',
+      );
     });
 
     it('should handle get errors', async () => {

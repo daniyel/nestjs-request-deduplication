@@ -24,7 +24,7 @@ export class RequestDeduplicationInterceptor implements NestInterceptor {
     this.logger.log('RequestDeduplicationInterceptor initialized');
   }
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const skipDeduplicateRequest = this.reflector.get<boolean>(
       SKIP_DEDUPLICATE_REQUEST_KEY,
       context.getHandler(),

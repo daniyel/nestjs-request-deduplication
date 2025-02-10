@@ -3,15 +3,26 @@ name: Pull Request Checks
 on:
   pull_request:
     branches: [ main ]
+    paths-ignore:
+      - 'package.json'
+      - 'CHANGELOG.md'
+    types:
+      - opened
+      - synchronize
+      - reopened
   push:
     branches:
-      - 'feature/**'
+      - 'feat/**'
       - 'fix/**'
       - 'docs/**'
+    paths-ignore:
+      - 'package.json'
+      - 'CHANGELOG.md'
 
 jobs:
   quality-checks:
     name: Quality Checks
+    if: "!startsWith(github.event.head_commit.message, 'chore(release)')"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

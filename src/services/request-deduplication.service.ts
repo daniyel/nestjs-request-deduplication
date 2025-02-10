@@ -39,7 +39,7 @@ export class RequestDeduplicationService implements OnModuleInit {
     await RequestDeduplicationService.storageAdapter.init();
   }
 
-  async processRequest(key: string, value: any, ttl: number): Promise<boolean> {
+  async processRequest(key: string, value: string, ttl: number): Promise<boolean> {
     try {
       const existingValue = await this.storage.get(key);
       if (existingValue) {

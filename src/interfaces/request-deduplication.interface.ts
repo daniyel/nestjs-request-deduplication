@@ -9,8 +9,8 @@ export enum StorageType {
 }
 
 export interface SerializerReturnValue {
-  value: any;
-  extras: any;
+  value: unknown;
+  extras: unknown;
 }
 
 export interface MemcachedServerOptionsSerializer {
@@ -52,7 +52,6 @@ export interface RequestDeduplicationModuleOptions {
   ttl?: number;
   memcachedConfig?: MemcachedOptions;
   redisConfig?: RedisOptions;
-  exclude?: string[];
 }
 
 export type RequestDeduplicationModuleOptionsWithRequired = Required<

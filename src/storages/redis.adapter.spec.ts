@@ -43,6 +43,24 @@ describe('RedisAdapter', () => {
       expect(mockGet).toHaveBeenCalledWith('test-key');
       expect(result).toEqual(mockValue);
     });
+
+    it('should throw error when key not found', async () => {
+      const mockGet = jest.fn().mockResolvedValue(undefined);
+      (Keyv as unknown as jest.Mock).mockImplementation(() => ({ get: mockGet }));
+
+      await adapter.init();
+      await expect(adapter.get('non-existent-key')).rejects.toThrow(
+        'Key non-existent-key not found',
+      );
+    });
+
+    it('should handle get errors', async () => {
+      const mockGet = jest.fn().mockRejectedValue(new Error('Redis connection error'));
+      (Keyv as unknown as jest.Mock).mockImplementation(() => ({ get: mockGet }));
+
+      await adapter.init();
+      await expect(adapter.get('test-key')).rejects.toThrow('Redis connection error');
+    });
   });
 
   describe('set', () => {

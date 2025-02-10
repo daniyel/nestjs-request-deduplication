@@ -4,11 +4,18 @@ import { RequestDeduplicationService } from './request-deduplication.service';
 import { REQUEST_DEDUPLICATION_MODULE_OPTIONS } from '../constants';
 import type { StorageAdapter } from '../storages';
 import { RedisAdapter, MemcachedAdapter, MemoryAdapter } from '../storages';
+import type { RequestDeduplicationModuleOptions } from '../interfaces';
 import { StorageType } from '../interfaces';
+import type { Logger } from '@nestjs/common';
 
 jest.mock('../storages/redis.adapter');
 jest.mock('../storages/memcached.adapter');
 jest.mock('../storages/memory.adapter');
+
+interface ServiceWithStorage {
+  new (options: RequestDeduplicationModuleOptions): RequestDeduplicationService;
+  storageAdapter: StorageAdapter;
+}
 
 describe('RequestDeduplicationService', () => {
   let service: RequestDeduplicationService;
@@ -25,7 +32,7 @@ describe('RequestDeduplicationService', () => {
       setLogLevels: jest.fn(),
       localInstance: null,
       registerLocalInstanceRef: jest.fn(),
-    } as any;
+    } as unknown as Logger;
 
     mockStorage = {
       init: jest.fn().mockResolvedValue(undefined),
@@ -57,7 +64,7 @@ describe('RequestDeduplicationService', () => {
 
   describe('processRequest', () => {
     it('should return true for first-time requests', async () => {
-      mockStorage.get.mockResolvedValue(null);
+      mockStorage.get.mockResolvedValue('');
 
       const result = await service.processRequest('test-key', 'value', 1000);
 
@@ -158,8 +165,9 @@ describe('RequestDeduplicationService', () => {
 
   describe('storage adapter initialization', () => {
     beforeEach(() => {
-      // Reset the static storage adapter before each test using type assertion
-      (RequestDeduplicationService as any).storageAdapter = undefined;
+      // Reset using proper type
+      (RequestDeduplicationService as unknown as ServiceWithStorage).storageAdapter =
+        undefined as unknown as StorageAdapter;
       jest.clearAllMocks();
     });
 
@@ -182,8 +190,7 @@ describe('RequestDeduplicationService', () => {
       const service = moduleRef.get(RequestDeduplicationService);
       await service.onModuleInit();
 
-      // Access private static property using type assertion
-      const adapter = (RequestDeduplicationService as any).storageAdapter;
+      const adapter = (RequestDeduplicationService as unknown as ServiceWithStorage).storageAdapter;
 
       expect(RedisAdapter).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -212,7 +219,7 @@ describe('RequestDeduplicationService', () => {
       const service = moduleRef.get(RequestDeduplicationService);
       await service.onModuleInit();
 
-      const adapter = (RequestDeduplicationService as any).storageAdapter;
+      const adapter = (RequestDeduplicationService as unknown as ServiceWithStorage).storageAdapter;
 
       expect(MemcachedAdapter).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -238,7 +245,7 @@ describe('RequestDeduplicationService', () => {
       const service = moduleRef.get(RequestDeduplicationService);
       await service.onModuleInit();
 
-      const adapter = (RequestDeduplicationService as any).storageAdapter;
+      const adapter = (RequestDeduplicationService as unknown as ServiceWithStorage).storageAdapter;
 
       expect(MemoryAdapter).toHaveBeenCalled();
       expect(adapter.init).toHaveBeenCalled();
