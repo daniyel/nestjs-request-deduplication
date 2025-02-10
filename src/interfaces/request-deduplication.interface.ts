@@ -52,7 +52,6 @@ export interface RequestDeduplicationModuleOptions {
   ttl?: number;
   memcachedConfig?: MemcachedOptions;
   redisConfig?: RedisOptions;
-  exclude?: string[];
 }
 
 export type RequestDeduplicationModuleOptionsWithRequired = Required<
