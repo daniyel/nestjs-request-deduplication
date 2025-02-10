@@ -40,6 +40,7 @@ jobs:
         id: changelog
         uses: TriPSs/conventional-changelog-action@v6
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           preset: 'angular'
           release-count: 0
 
