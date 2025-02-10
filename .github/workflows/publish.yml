@@ -38,7 +38,7 @@ jobs:
 
       - name: Generate CHANGELOG
         id: changelog
-        uses: TriPSs/conventional-changelog-action@v5
+        uses: TriPSs/conventional-changelog-action@v6
         with:
           preset: 'angular'
           release-count: 0
