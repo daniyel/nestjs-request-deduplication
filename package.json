@@ -26,8 +26,8 @@
     "start:memory": "npm run clean && npm run build && npm run dev --workspace=examples/memory",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
     "lint:fix": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
     "format:fix": "npm run format && npm run lint:fix",
     "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
     "lint-staged": "lint-staged"

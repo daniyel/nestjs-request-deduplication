@@ -1,14 +1,4 @@
-
 import { Logger } from '@nestjs/common';
-
-// Override all logger methods to do nothing
-const mockLogger = {
-  log: jest.fn(),
-  error: jest.fn(),
-  warn: jest.fn(),
-  debug: jest.fn(),
-  verbose: jest.fn(),
-};
 
 // Replace the logger implementation
 jest.spyOn(Logger.prototype, 'log').mockImplementation(() => undefined);
