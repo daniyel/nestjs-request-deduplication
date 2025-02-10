@@ -37,7 +37,8 @@ jobs:
         run: npm run test
 
       - name: Install changelog tools
-        run: npm install -g conventional-changelog-cli conventional-recommended-bump
+        run: |
+          npm install -g conventional-changelog-cli conventional-recommended-bump conventional-changelog-angular
 
       - name: Determine version bump
         id: bump
