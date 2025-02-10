@@ -12,6 +12,7 @@
 jest.config.js
 tsconfig*.json
 commitlint.config.js
+.release-please-*
 
 # IDE
 .vscode
