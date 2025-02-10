@@ -35,8 +35,7 @@
   "description": "",
   "peerDependencies": {
     "@nestjs/common": "^11.0.0",
-    "@nestjs/core": "^11.0.0",
-    "rxjs": "^7.8.0"
+    "@nestjs/core": "^11.0.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.2",
@@ -70,6 +69,7 @@
   },
   "dependencies": {
     "@keyv/memcache": "^2.0.1",
-    "@keyv/redis": "^4.2.0"
+    "@keyv/redis": "^4.2.0",
+    "rxjs": "^7.8.0"
   }
 }
