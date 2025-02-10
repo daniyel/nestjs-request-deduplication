@@ -9,8 +9,8 @@ export enum StorageType {
 }
 
 export interface SerializerReturnValue {
-  value: any;
-  extras: any;
+  value: unknown;
+  extras: unknown;
 }
 
 export interface MemcachedServerOptionsSerializer {

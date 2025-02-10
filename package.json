@@ -24,8 +24,8 @@
     "build:esm": "tsc -p tsconfig.esm.json",
     "clean": "rimraf dist",
     "start:memory": "npm run clean && npm run build && npm run dev --workspace=examples/memory",
-    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
-    "lint:fix": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "lint": "eslint \"src/**/*.ts\"",
+    "lint:fix": "eslint \"src/**/*.ts\" --fix",
     "format": "prettier --write \"src/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\"",
     "format:fix": "npm run format && npm run lint:fix",
@@ -67,8 +67,8 @@
   },
   "lint-staged": {
     "src/**/*.ts": [
-      "eslint --fix",
-      "prettier --write"
+      "npm run lint",
+      "npm run format:check"
     ]
   },
   "dependencies": {

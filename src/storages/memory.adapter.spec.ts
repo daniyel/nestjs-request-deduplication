@@ -36,14 +36,14 @@ describe('MemoryAdapter', () => {
       expect(result).toEqual(mockValue);
     });
 
-    it('should return null for non-existent key', async () => {
+    it('should throw error for non-existent key', async () => {
       const mockGet = jest.fn().mockResolvedValue(undefined);
       (Keyv as unknown as jest.Mock).mockImplementation(() => ({ get: mockGet }));
 
       await adapter.init();
-      const result = await adapter.get('non-existent-key');
-
-      expect(result).toBeUndefined();
+      await expect(adapter.get('non-existent-key')).rejects.toThrow(
+        'Key non-existent-key not found',
+      );
     });
   });
 

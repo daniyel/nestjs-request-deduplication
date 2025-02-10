@@ -16,11 +16,16 @@ export class MemoryAdapter implements StorageAdapter {
     this.logger.log('Memory storage adapter initialized successfully');
   }
 
-  async get(key: string): Promise<any> {
-    return this.keyv.get(key);
+  async get(key: string): Promise<string> {
+    const value = await this.keyv.get(key);
+    if (value === undefined) {
+      throw new Error(`Key ${key} not found`);
+    }
+
+    return value;
   }
 
-  async set(key: string, value: any, ttl: number): Promise<void> {
+  async set(key: string, value: string, ttl: number): Promise<void> {
     await this.keyv.set(key, value, ttl);
   }
 

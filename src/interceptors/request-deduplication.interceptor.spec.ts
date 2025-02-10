@@ -56,7 +56,7 @@ describe('RequestDeduplicationInterceptor', () => {
 
   it('should skip deduplication when Skip decorator is present', async () => {
     reflector.get.mockReturnValue(true);
-    const context = createMockExecutionContext();
+    const context = createMockExecutionContext({});
     const callHandler = createMockCallHandler({ result: 'success' });
 
     const result = await firstValueFrom(interceptor.intercept(context, callHandler));
@@ -262,7 +262,7 @@ describe('RequestDeduplicationInterceptor', () => {
   });
 });
 
-function createMockExecutionContext(request: any = {}): ExecutionContext {
+function createMockExecutionContext(request: Record<string, unknown>): ExecutionContext {
   const mockHandler = jest.fn();
   return {
     switchToHttp: () => ({
@@ -278,7 +278,7 @@ function createMockExecutionContext(request: any = {}): ExecutionContext {
   } as unknown as ExecutionContext;
 }
 
-function createMockCallHandler(response: any): CallHandler {
+function createMockCallHandler(response: { result: string }): CallHandler {
   return {
     handle: () => of(response.result),
   };
