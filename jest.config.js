@@ -5,11 +5,23 @@ module.exports = {
   transform: {
     '^.+\\.(t|j)s$': 'ts-jest'
   },
-  collectCoverageFrom: ['**/*.(t|j)s'],
-  coverageDirectory: './coverage',
+  collectCoverageFrom: [
+    '**/*.ts',
+    '!**/*.index.(t|j)s',
+    '!**/index.(t|j)s'
+  ],
+  coverageDirectory: '../coverage',
   testEnvironment: 'node',
   moduleNameMapper: {
     '^src/(.*)$': '<rootDir>/$1'
   },
-  setupFiles: ['<rootDir>/test/jest-setup.ts']
+  setupFiles: ['<rootDir>/test/jest-setup.ts'],
+  coverageThreshold: {
+    global: {
+      branches: 100,
+      functions: 100,
+      lines: 100,
+      statements: 100
+    }
+  }
 };

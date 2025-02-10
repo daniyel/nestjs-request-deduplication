@@ -1,10 +1,11 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Item } from './items.interface';
+import { CreateItemDto } from './dto/create-item.dto';
 
 @Injectable()
 export class ItemsService implements OnModuleInit {
   private readonly logger = new Logger(ItemsService.name);
-  private readonly items: Item[] = [
+  private items: Item[] = [
     {
       id: '1',
       name: 'Item 1',
@@ -34,9 +35,16 @@ export class ItemsService implements OnModuleInit {
     return this.items.find(item => item.id === id);
   }
 
-  create(item: Item): Item {
-    this.items.push(item);
-    return item;
+  create(item: CreateItemDto): Item {
+    const id = (this.items.length + 1).toString();
+    const newItem = {
+      ...item,
+      id,
+    };
+
+    this.items.push(newItem);
+
+    return newItem;
   }
 
   update(id: string, updatedItem: Item): Item | undefined {

@@ -1,6 +1,9 @@
 import { Controller, Get, Post, Put, Delete, Param, Body, Logger, Inject } from '@nestjs/common';
 import { ItemsService } from './items.service';
 import { Item } from './items.interface';
+import { CreateItemDto, CreateItemSchema } from './dto/create-item.dto';
+import { ZodPipe } from 'src/pipes/zod.pipe';
+import { SkipDeduplicateRequest } from 'nestjs-request-deduplication';
 
 @Controller('items')
 export class ItemsController {
@@ -8,13 +11,14 @@ export class ItemsController {
 
   constructor(@Inject(ItemsService) private readonly itemsService: ItemsService) {
     this.logger.log('ItemsController constructor called');
-    // Add this check
+
     if (!itemsService) {
       this.logger.error('ItemsService is undefined in constructor');
     }
   }
 
   @Get()
+  @SkipDeduplicateRequest()
   findAll() {
     return this.itemsService.findAll();
   }
@@ -25,7 +29,7 @@ export class ItemsController {
   }
 
   @Post()
-  create(@Body() item: Item) {
+  create(@Body(new ZodPipe(CreateItemSchema)) item: CreateItemDto) {
     return this.itemsService.create(item);
   }
 

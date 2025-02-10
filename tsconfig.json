@@ -6,7 +6,6 @@
       "ES6",
       "DOM"
     ],
-    "outDir": "./dist",
     "rootDir": "./",
     "strict": true,
     "moduleResolution": "Node",
@@ -14,8 +13,12 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
+    "experimentalDecorators": true,
     "declaration": true,
-    "experimentalDecorators": true
+    "declarationMap": true,
+    "importHelpers": true,
+    "types": ["node", "jest", "express", "fastify"],
+    "isolatedModules": true
   },
   "include": [
     "src/**/*.ts",

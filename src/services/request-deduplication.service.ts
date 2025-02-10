@@ -1,14 +1,13 @@
-import { Injectable, Logger, Inject, OnModuleInit } from '@nestjs/common';
-import { RequestDeduplicationStorage } from './storage/request-deduplication.storage';
-import { RequestDeduplicationModuleOptions } from './request-deduplication.interface';
-import { RedisStorage } from './storage/redis.storage';
-import { MemcachedStorage } from './storage/memcached.storage';
-import { MemoryStorage } from './storage/memory.storage';
-import { REQUEST_DEDUPLICATION_MODULE_OPTIONS } from './request-deduplication.constants';
+import type { OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
+import type { RequestDeduplicationModuleOptions } from '../interfaces';
+import { REQUEST_DEDUPLICATION_MODULE_OPTIONS } from '../constants';
+import type { StorageAdapter } from '../storages';
+import { MemcachedAdapter, MemoryAdapter, RedisAdapter } from '../storages';
 
 @Injectable()
 export class RequestDeduplicationService implements OnModuleInit {
-  private static storageInstance: RequestDeduplicationStorage;
+  private static storageAdapter: StorageAdapter;
   private readonly logger = new Logger(RequestDeduplicationService.name);
 
   constructor(
@@ -20,34 +19,35 @@ export class RequestDeduplicationService implements OnModuleInit {
     await this.initStorage();
   }
 
-  private get storage(): RequestDeduplicationStorage {
-    return RequestDeduplicationService.storageInstance;
+  private get storage(): StorageAdapter {
+    return RequestDeduplicationService.storageAdapter;
   }
 
   private async initStorage() {
-    if (RequestDeduplicationService.storageInstance) {
+    if (RequestDeduplicationService.storageAdapter) {
       return;
     }
 
     if (this.options.redisConfig) {
-      RequestDeduplicationService.storageInstance = new RedisStorage(this.options);
-    } else if (this.options.memcachedServer) {
-      RequestDeduplicationService.storageInstance = new MemcachedStorage(this.options);
+      RequestDeduplicationService.storageAdapter = new RedisAdapter(this.options);
+    } else if (this.options.memcachedConfig) {
+      RequestDeduplicationService.storageAdapter = new MemcachedAdapter(this.options);
     } else {
-      RequestDeduplicationService.storageInstance = new MemoryStorage(this.options);
+      RequestDeduplicationService.storageAdapter = new MemoryAdapter(this.options);
     }
-    
-    await RequestDeduplicationService.storageInstance.initStorage();
+
+    await RequestDeduplicationService.storageAdapter.init();
   }
 
   async processRequest(key: string, value: any, ttl: number): Promise<boolean> {
     try {
       const existingValue = await this.storage.get(key);
-      console.log('Stored key', existingValue);
       if (existingValue) {
         this.logger.log(`Request for ${key} already processed.`);
         return false;
       }
+      this.logger.log(`Request for ${key} not yet processed.`);
+      this.logger.log(`Request for ${key} processing.`);
       await this.storage.set(key, value, ttl);
       this.logger.log(`Request for ${key} processed.`);
       return true;
