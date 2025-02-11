@@ -9,7 +9,7 @@ export class MemcachedAdapter implements StorageAdapter {
   public readonly logger = new Logger(MemcachedAdapter.name);
   private keyv!: Keyv;
 
-  constructor(private options: RequestDeduplicationModuleOptions) {}
+  constructor(private readonly options: RequestDeduplicationModuleOptions) {}
 
   async init(): Promise<void> {
     if (!this.options.memcachedConfig) {

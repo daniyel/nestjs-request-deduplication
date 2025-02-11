@@ -8,7 +8,7 @@ export class RedisAdapter implements StorageAdapter {
   public readonly logger = new Logger(RedisAdapter.name);
   private keyv!: Keyv;
 
-  constructor(private options: RequestDeduplicationModuleOptions) {}
+  constructor(private readonly options: RequestDeduplicationModuleOptions) {}
 
   async init(): Promise<void> {
     this.keyv = new Keyv({

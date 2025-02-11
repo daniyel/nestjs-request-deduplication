@@ -7,7 +7,7 @@ export class MemoryAdapter implements StorageAdapter {
   public readonly logger = new Logger(MemoryAdapter.name);
   private keyv!: Keyv;
 
-  constructor(private options: RequestDeduplicationModuleOptions) {}
+  constructor(private readonly options: RequestDeduplicationModuleOptions) {}
 
   async init(): Promise<void> {
     this.keyv = new Keyv({
