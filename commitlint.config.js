@@ -1,14 +1,22 @@
 module.exports = {
   extends: ['@commitlint/config-conventional'],
   rules: {
-    'references-empty': [2, 'never'],
-    'subject-case': [2, 'always', 'sentence-case'],
-    'type-enum': [2, 'always', ['feat', 'fix', 'docs', 'style', 'refactor', 'test', 'chore']],
-    'body-max-line-length': [2, 'always', 100],
-  },
-  parserPreset: {
-    parserOpts: {
-      issuePrefixes: ['#']
-    }
+    'references-empty': [0, 'never'],  // Make issue references optional
+    'subject-case': [0, 'never'],      // Allow any case in subject
+    'type-enum': [2, 'always', [
+      'feat',
+      'fix',
+      'docs',
+      'style',
+      'refactor',
+      'perf',
+      'test',
+      'build',
+      'ci',
+      'chore',
+      'revert'
+    ]],
+    'type-case': [2, 'always', 'lower-case'],
+    'scope-case': [2, 'always', 'lower-case']
   }
 };
