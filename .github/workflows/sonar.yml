@@ -1,4 +1,4 @@
-name: Pull Request Checks
+name: SonarCloud Analysis
 
 on:
   pull_request:
@@ -21,12 +21,17 @@ on:
       - 'CHANGELOG.md'
 
 jobs:
-  quality-checks:
-    name: Quality Checks
-    if: "!startsWith(github.event.head_commit.message, 'chore(release)')"
+  sonarcloud:
+    name: SonarCloud
     runs-on: ubuntu-latest
+    environment: Quality check
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -37,17 +42,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Check formatting
-        run: npm run format:check
-
-      - name: Lint check
-        run: npm run lint
-
-      - name: Run tests
+      - name: Test and coverage
         run: npm run test:cov
 
-      - name: Upload coverage reports
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: true
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v1.9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
