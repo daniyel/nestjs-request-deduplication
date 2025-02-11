@@ -1,0 +1,27 @@
+{
+  "name": "memory-example",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "nest start --watch --preserveWatchOutput --exec 'node -r tsconfig-paths/register -r ts-node/register ./src/main.ts'",
+    "start": "nest start",
+    "build": "nest build",
+    "lint": "eslint . --ext .ts",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "@nestjs/common": "latest",
+    "@nestjs/core": "latest",
+    "@nestjs/platform-express": "latest",
+    "reflect-metadata": "latest",
+    "rxjs": "latest",
+    "express": "latest",
+    "nestjs-request-deduplication": "file:../../"
+  },
+  "devDependencies": {
+    "typescript": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest"
+  }
+}
