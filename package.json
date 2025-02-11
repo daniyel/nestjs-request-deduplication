@@ -77,9 +77,7 @@
     "rxjs": "^7.8.0"
   },
   "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/",
-    "tag": "latest"
+    "access": "public"
   },
   "repository": {
     "type": "git",
@@ -96,9 +94,5 @@
   "bugs": {
     "url": "https://github.com/daniyel/nestjs-request-deduplication/issues"
   },
-  "homepage": "https://github.com/daniyel/nestjs-request-deduplication#readme",
-  "engines": {
-    "node": ">=23.0.0",
-    "npm": ">=10.0.0"
-  }
+  "homepage": "https://github.com/daniyel/nestjs-request-deduplication#readme"
 }

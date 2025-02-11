@@ -11,54 +11,71 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
-    environment: Publishing
     permissions:
       contents: write
       issues: write
       pull-requests: write
       packages: write
-    outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
     steps:
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           token: ${{ secrets.GH_TOKEN }}
-
-      - uses: googleapis/release-please-action@v4
-        id: release
-        with:
-          token: ${{ secrets.GH_TOKEN }}
-          config-file: .release-please-config.json
-          manifest-file: .release-please-manifest.json
-
-  publish:
-    needs: release
-    if: ${{ needs.release.outputs.release_created }}
-    runs-on: ubuntu-latest
-    environment: Publishing
-    steps:
-      - uses: actions/checkout@v4
 
       - name: Setup Node.js
-        if: ${{ steps.release.outputs.release_created }}
         uses: actions/setup-node@v4
         with:
           node-version: 23
           registry-url: https://registry.npmjs.org/
 
       - name: Install dependencies
-        if: ${{ steps.release.outputs.release_created }}
         run: npm ci
 
       - name: Build
-        if: ${{ steps.release.outputs.release_created }}
         run: npm run build
 
       - name: Run tests
-        if: ${{ steps.release.outputs.release_created }}
         run: npm run test
 
+      - name: Generate CHANGELOG
+        id: changelog
+        uses: conventional-changelog/conventional-changelog-action@v4
+        with:
+          preset: 'angular'
+          releaseCount: 0
+
+      - name: Determine version bump
+        id: version
+        uses: zwaldowski/semver-release-action@v3
+        with:
+          dry_run: true
+          bump: ${{ steps.changelog.outputs.bump }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update version
+        run: |
+          npm version ${{ steps.version.outputs.version }} --no-git-tag-version
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Create Release PR
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          commit-message: "chore(release): ${{ steps.version.outputs.version }}"
+          title: "chore(release): ${{ steps.version.outputs.version }}"
+          body: |
+            Release version ${{ steps.version.outputs.version }}
+
+            Changes:
+            ${{ steps.changelog.outputs.changes }}
+          branch: release/${{ steps.version.outputs.version }}
+          base: main
+          labels: release
+          draft: false
+
       - name: Publish to NPM
+        if: github.ref == 'refs/heads/main'
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
