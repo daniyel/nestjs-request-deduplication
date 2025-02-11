@@ -1,0 +1,14 @@
+name: main
+protection:
+  required_status_checks:
+    strict: true
+    contexts:
+      - "Quality Checks"
+  required_pull_request_reviews:
+    dismiss_stale_reviews: true
+    require_code_owner_reviews: true
+  enforce_admins: false
+  bypass_pull_request_allowances:
+    apps:
+      - "github-actions[bot]"
+  restrictions: null

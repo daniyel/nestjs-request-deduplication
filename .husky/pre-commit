@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+branch_name=$(git symbolic-ref --short HEAD)
+pattern="^(feat|fix|docs|style|refactor|test|chore)\/[0-9]+-.+$"
+
+if ! [[ $branch_name =~ $pattern ]]; then
+  echo "Branch name '$branch_name' is invalid."
+  echo "Branch names must follow pattern: <type>/<issue-number>-<description>"
+  echo "Example: feat/123-add-new-feature"
+  exit 1
+fi
+
+npm run lint-staged
