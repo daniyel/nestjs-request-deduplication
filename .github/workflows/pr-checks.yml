@@ -10,14 +10,6 @@ on:
       - opened
       - synchronize
       - reopened
-  push:
-    branches:
-      - 'feat/**'
-      - 'fix/**'
-      - 'docs/**'
-    paths-ignore:
-      - 'package.json'
-      - 'CHANGELOG.md'
 
 jobs:
   quality-checks:

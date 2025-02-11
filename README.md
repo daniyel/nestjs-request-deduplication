@@ -257,8 +257,8 @@ Contributions are welcome! Please follow these steps:
 
 We use conventional commits. Examples:
 ```bash
-git commit -m "feat(api): Add new endpoint #123"
-git commit -m "fix: Resolve memory leak issue #456"
+git commit -m "feat(api): add new endpoint #123"
+git commit -m "fix: resolve memory leak issue #456"
 ```
 
 ## License
