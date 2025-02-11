@@ -1,4 +1,13 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+# Validate commit message format
 npx --no -- commitlint --edit $1
+
+# Additional check for conventional commit format
+commit_msg=$(cat $1)
+if ! echo "$commit_msg" | grep -qE "^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z-]+\))?: .+$"; then
+  echo "Error: Commit message must follow conventional commit format"
+  echo "Example: feat(api): add new endpoint"
+  exit 1
+fi
